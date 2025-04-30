@@ -146,9 +146,9 @@ def determine_dynamic_extension(timing_plan, phase_index, bus_phase, status, avg
     
     # Check if we need a 7-second extension
     # Condition: Red phase AND more than 3 vehicles in queue
-    if 'North-South' not in bus_phase or status == 'Red Clearance' or 'Yellow' in bus_phase:
+    if 'North-South-Through' not in bus_phase or status == 'Red Clearance' or 'Yellow' in bus_phase:
         # Calculate queue length for North-South direction
-        queue_length = estimate_queue_length(timing_plan, 'north_south_through', avg_arrivals)
+        queue_length = estimate_queue_length(timing_plan, 'north through', avg_arrivals)
         
         # If more than 3 vehicles are waiting, use 7-second extension
         if queue_length > 3:
@@ -324,7 +324,7 @@ def generate_detailed_timing_plan(signal_timing, horizon):
             else:
                 ns_left_status = "GREEN"
         
-        ###fix this as well (4/23/25)
+        
         # Add each second in this phase to the detailed plan
         while cumulative_time < phase_end and current_second < horizon:
             detailed_plan['seconds'].append(current_second)
@@ -420,7 +420,7 @@ def apply_tsp_at_time(signal_plan, phase_index, time_in_phase, extension):
     modified_plan = [phase.copy() for phase in signal_plan]
     
     # Determine the bus direction (assuming North-South direction for buses)
-    bus_direction = "North-South"
+    bus_direction = "North-South-Through"
     
     # Find competing direction phases to reduce time from
     competing_indices = []
@@ -708,10 +708,20 @@ if __name__ == "__main__":
     }
     
     # Current simulation time
-    current_time = 40  # seconds into the simulation
+    with open('final_time.txt', 'r') as f:
+    # Read the first line of the file
+     line = f.readline().strip()  # Remove any extra spaces or newline characters
     
-    # Fixed bus arrival time for the exhaustive search (absolute time)
-    arrival_time = 85  # This is the absolute arrival time (this will be fed in somehwo )
+    # Extract the final time value from the line
+    # Assuming the line is formatted like: "Final Simulation Time for cutoff_frame 100: 12.34 seconds"
+    final_time_str = line.split(":")[1].strip().split()[0]  # Extract the value before 'seconds'
+    
+    # Convert the extracted value to a float and store it in the `current_time` variable
+    current_time = float(final_time_str)
+    print('Bus Enters Link:')
+    print(current_time)
+    # arrival time for the exhaustive search (absolute time)
+    arrival_time =  40 # (this will be fed in somehow)
     
     # Get details about when the bus will arrive at the intersection
     phase_info = find_bus_phase(arrival_time - current_time, 
